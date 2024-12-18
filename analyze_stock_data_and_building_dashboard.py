@@ -2,42 +2,66 @@ import yfinance as yf
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-#create an object for AAPL (Apple)
-apple = yf.Ticker("AAPL")
-
-# get historical market data
-apple_data=apple.history(period="max")
-
-apple_data.reset_index(inplace=True)
-
-#create an object for AMD (Advanced Micro Devices)
+#Use yfinance library to extract AMD (Advanced Micro Devices) Stock data
 amd=yf.Ticker("AMD")
 amd_data=amd.history(period="max")
-
 amd_data.reset_index(inplace=True)
 
-#Extracting Netflix stock data using a Web Scraping BeautifulSoup
-url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/netflix_data_webpage.html"
-data=requests.get(url).text
-soup = BeautifulSoup(data, 'html.parser')
-netflix_df = pd.DataFrame(columns=["Date", "Open", "High", "Low", "Close", "Volume"])
+#Use BeautifulSoup to Extract Tesla Revenue Data
+url="https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/revenue.htm"
+html_data=requests.get(url).text
+soup=BeautifulSoup(html_data,'html.parser')
+tesla_revenue=pd.DataFrame(columns=['Date','Revenue'])
 
-for row in soup.find("tbody").find_all('tr'):
-    col = row.find_all("td")
-    date = col[0].text
-    Open = col[1].text
-    high = col[2].text
-    low = col[3].text
-    close = col[4].text
-    adj_close = col[5].text
-    volume = col[6].text
+for x in soup.find_all('tbody')[1].find_all('tr'):
+  col=x.find_all('td')
+  data=col[0].text
+  revenue=col[1].text
+  tesla_revenue=pd.concat([tesla_revenue,pd.DataFrame({'Date':[data],'Revenue':[revenue]})],ignore_index=True)
+    
+#remove comma and dollar signs
+tesla_revenue["Revenue"] = tesla_revenue['Revenue'].str.replace(',',"")
+tesla_revenue["Revenue"] = tesla_revenue['Revenue'].str.replace('$',"")
 
-    # Finally we append the data of each row to the table
-    netflix_df = pd.concat([netflix_df,pd.DataFrame({"Date":[date], "Open":[Open], "High":[high], "Low":[low], "Close":[close], "Adj Close":[adj_close], "Volume":[volume]})], ignore_index=True)
+#remove null or empty string
+tesla_revenue.dropna(inplace=True)
+tesla_revenue = tesla_revenue[tesla_revenue['Revenue'] != ""]
 
-#Extracting Amazon Data using Pandas
-url="https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/amazon_data_webpage.html"
-read_html_pandas_data = pd.read_html(url)
-netflix_df = read_html_pandas_data[0]
-netflix_df.head()
+#Use Pandas to extract GameStop stock data
+url="https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/stock.html"
+gme_tables=pd.read_html(url)
+gme_revenue_table=gme_tables[1]
+gme_revenue_table.rename(columns={'GameStop Quarterly Revenue (Millions of US $)':'Date','GameStop Quarterly Revenue (Millions of US $).1':'Revenue'},inplace=True)
+
+#remove comma and dollar signs
+gme_revenue['Revenue']=gme_revenue['Revenue'].str.replace(',','')
+gme_revenue['Revenue']=gme_revenue['Revenue'].str.replace('$','')
+
+#remove null or empty string
+gme_revenue.dropna(inplace=True)
+gme_revenue=gme_revenue[gme_revenue['Revenue']!=""]
+
+#Create a dashboard
+#function to plot the revenue data
+def make_graph(stock_data, revenue_data, stock):
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=("Historical Share Price", "Historical Revenue"), vertical_spacing = .3)
+    stock_data_specific = stock_data[stock_data.Date <= '2021-06-14']
+    revenue_data_specific = revenue_data[revenue_data.Date <= '2021-04-30']
+    fig.add_trace(go.Scatter(x=pd.to_datetime(stock_data_specific.Date, infer_datetime_format=True), y=stock_data_specific.Close.astype("float"), name="Share Price"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=pd.to_datetime(revenue_data_specific.Date, infer_datetime_format=True), y=revenue_data_specific.Revenue.astype("float"), name="Revenue"), row=2, col=1)
+    fig.update_xaxes(title_text="Date", row=1, col=1)
+    fig.update_xaxes(title_text="Date", row=2, col=1)
+    fig.update_yaxes(title_text="Price ($US)", row=1, col=1)
+    fig.update_yaxes(title_text="Revenue ($US Millions)", row=2, col=1)
+    fig.update_layout(showlegend=False,
+    height=900,
+    title=stock,
+    xaxis_rangeslider_visible=True)
+    fig.show()
+    
+amd_data.plot(x="Date", y="Open", title="AMD Stock Price")
+make_graph(tesla_data,tesla_revenue,"Tesla Revenue")
+make_graph(gme_data,gme_revenue,"GameStop Revenue")

@@ -14,4 +14,7 @@ In this course I learned the basis of data analysis and in particular:
 I collected here all my assignments, where I investigated different case-studies and practical examples.
 
 ## Data Visualization
-In this projects I implement data visualization techniques and plots using Python libraries, such as Matplotlib, Seaborn, and Folium to tell a stimulating story. I create different types of charts and plots such as line, area, histograms, bar, pie, box, scatter, and bubble, but also advanced visualizations such as waffle charts, word clouds, regression plots, maps with markers, & choropleth maps. Finally, I generate interactive dashboards containing scatter, line, bar, bubble, pie, and sunburst charts using the Dash framework and Plotly library.
+In this projects I implement data visualization techniques and plots using Python libraries, such as Matplotlib, Seaborn, and Folium to tell a stimulating story. I create different types of charts and plots such as line, area, histograms, bar, pie, box, scatter, and bubble, but also advanced visualizations such as waffle charts, word clouds, regression plots, maps with markers, & choropleth maps. Finally, I generate interactive dashboards containing scatter, line, bar, bubble, pie, and sunburst charts using the Dash framework and Plotly library (Figure below).
+
+
+![dash_wildfire](https://github.com/user-attachments/assets/76170f7d-390c-4b6d-b183-6d1f690d7c33)
